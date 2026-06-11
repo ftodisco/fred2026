@@ -40,3 +40,7 @@ MOLTBOT_GATEWAY_TOKEN=dev-token-change-in-prod
 # CDP (Chrome DevTools Protocol) configuration for browser automation
 # CDP_SECRET=shared-secret-for-cdp-auth
 # WORKER_URL=https://your-worker.example.com
+
+# Video generation (Higgsfield AI) - used by the video-use skill
+# Get your API key at https://higgsfield.ai/settings/api
+# HIGGSFIELD_API_KEY=your-higgsfield-api-key
