@@ -24,7 +24,7 @@ The following Cloudflare features used by this project have free tiers:
 This project uses a `standard-1` Cloudflare Container instance (1/2 vCPU, 4 GiB memory, 8 GB disk). Below are approximate monthly costs assuming the container runs 24/7, based on [Cloudflare Containers pricing](https://developers.cloudflare.com/containers/pricing/):
 
 | Resource | Provisioned | Monthly Usage | Included Free | Overage | Approx. Cost |
-|----------|-------------|---------------|---------------|---------|--------------|
+|----------|-------------|---------------|---------------|---------|--____________|
 | Memory | 4 GiB | 2,920 GiB-hrs | 25 GiB-hrs | 2,895 GiB-hrs | ~$26/mo |
 | CPU (at ~10% utilization) | 1/2 vCPU | ~2,190 vCPU-min | 375 vCPU-min | ~1,815 vCPU-min | ~$2/mo |
 | Disk | 8 GB | 5,840 GB-hrs | 200 GB-hrs | 5,640 GB-hrs | ~$1.50/mo |
@@ -323,6 +323,33 @@ npm run deploy
 
 All endpoints require authentication via the `?secret=<CDP_SECRET>` query parameter.
 
+## Optional: Video Generation (Higgsfield AI)
+
+Generate AI videos using [Higgsfield AI](https://higgsfield.ai)'s multi-model platform. The pre-installed `video-use` skill gives OpenClaw the ability to create videos from text prompts using models from Bytedance, Wan, Minimax, and Kling.
+
+### Setup
+
+1. Create an API key at [https://higgsfield.ai/settings/api](https://higgsfield.ai/settings/api)
+2. Set the secret:
+
+```bash
+npx wrangler secret put HIGGSFIELD_API_KEY
+```
+
+3. Redeploy:
+
+```bash
+npm run deploy
+```
+
+Once configured, ask OpenClaw to generate a video:
+
+```
+Generate an 8-second video of a drone flying over a coastal city at sunset
+```
+
+See `skills/video-use/SKILL.md` for available models, options, and script usage.
+
 ## Built-in Skills
 
 The container includes pre-installed skills in `/root/clawd/skills/`:
@@ -346,6 +373,29 @@ node /root/clawd/skills/cloudflare-browser/scripts/video.js "https://site1.com,h
 ```
 
 See `skills/cloudflare-browser/SKILL.md` for full documentation.
+
+### video-use
+
+AI video generation via [Higgsfield AI](https://higgsfield.ai). Requires `HIGGSFIELD_API_KEY` to be set (see [Video Generation](#optional-video-generation-higgsfield-ai) above).
+
+**Scripts:**
+- `generate.js` - Generate a video from a text prompt and poll for completion
+- `client.js` - Reusable Higgsfield API client library
+
+**Usage:**
+```bash
+# Generate a video
+node /root/clawd/skills/video-use/scripts/generate.js "A cinematic mountain sunrise" --duration 8
+
+# List available models
+node /root/clawd/skills/video-use/scripts/generate.js --list-models
+
+# Specific model and aspect ratio
+node /root/clawd/skills/video-use/scripts/generate.js "Product on white background" \
+  --model seedance_2_0 --aspect-ratio 9:16 --resolution 1080p
+```
+
+See `skills/video-use/SKILL.md` for full documentation.
 
 ## Optional: Cloudflare AI Gateway
 
@@ -438,6 +488,7 @@ The previous `AI_GATEWAY_API_KEY` + `AI_GATEWAY_BASE_URL` approach is still supp
 | `SLACK_APP_TOKEN` | No | Slack app token |
 | `CDP_SECRET` | No | Shared secret for CDP endpoint authentication (see [Browser Automation](#optional-browser-automation-cdp)) |
 | `WORKER_URL` | No | Public URL of the worker (required for CDP) |
+| `HIGGSFIELD_API_KEY` | No | Higgsfield AI API key for video generation (see [Video Generation](#optional-video-generation-higgsfield-ai)) |
 
 ## Security Considerations
 
@@ -469,6 +520,8 @@ OpenClaw in Cloudflare Sandbox uses multiple authentication layers:
 
 **WebSocket issues in local development:** `wrangler dev` has known limitations with WebSocket proxying through the sandbox. HTTP requests work but WebSocket connections may fail. Deploy to Cloudflare for full functionality.
 
+**Video generation fails (401):** Verify `HIGGSFIELD_API_KEY` is set with `npx wrangler secret list`. If missing, run `npx wrangler secret put HIGGSFIELD_API_KEY` and redeploy.
+
 ## Known Issues
 
 ### Windows: Gateway fails to start with exit code 126 (permission denied)
@@ -481,3 +534,4 @@ On Windows, Git may check out shell scripts with CRLF line endings instead of LF
 - [OpenClaw Docs](https://docs.openclaw.ai/)
 - [Cloudflare Sandbox Docs](https://developers.cloudflare.com/sandbox/)
 - [Cloudflare Access Docs](https://developers.cloudflare.com/cloudflare-one/policies/access/)
+- [Higgsfield AI](https://higgsfield.ai)
